@@ -187,6 +187,8 @@ Dagaz.Model.BuildDesign = function(design) {
     design.addPosition("3l", [0, 0, 0, 1, -1, -11, -13, -12]);
     design.addPosition("2l", [0, 0, 0, 1, -1, -11, -13, -12]);
     design.addPosition("1l", [0, 0, 0, 0, -1, 0, -13, -12]);
+    design.addPosition("T1", [0, 0, 0, 0, 0, 0, 0, 0]);
+    design.addPosition("T2", [0, 0, 0, 0, 0, 0, 0, 0]);
 
     design.addZone("promotion-zone", 2, [107, 106, 105, 104, 103, 102, 101, 100, 99, 98, 97, 96, 119, 118, 117, 116, 115, 114, 113, 112, 111, 110, 109, 108, 131, 130, 129, 128, 127, 126, 125, 124, 123, 122, 121, 120, 143, 142, 141, 140, 139, 138, 137, 136, 135, 134, 133, 132]);
     design.addZone("promotion-zone", 1, [11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36]);
@@ -612,6 +614,16 @@ Dagaz.Model.BuildDesign = function(design) {
     design.addMove(37, 0, [6], 0);
     design.addMove(37, 0, [5], 0);
 
+    design.addPiece("Free-King!", 38, 22);
+    design.addMove(6, 1, [7, 7], 0);
+    design.addMove(6, 1, [1, 1], 0);
+    design.addMove(6, 1, [4, 4], 0);
+    design.addMove(6, 1, [3, 3], 0);
+    design.addMove(6, 1, [6, 6], 0);
+    design.addMove(6, 1, [2, 2], 0);
+    design.addMove(6, 1, [5, 5], 0);
+    design.addMove(6, 1, [0, 0], 0);
+
     design.setup("White", "Go-Between", 51);
     design.setup("White", "Go-Between", 56);
     design.setup("White", "Pawn", 47);
@@ -784,6 +796,8 @@ Dagaz.View.configure = function(view) {
     view.defPiece("BlackSilver-General", "Black Silver-General");
     view.defPiece("WhiteCopper-General", "White Copper-General");
     view.defPiece("BlackCopper-General", "Black Copper-General");
+    view.defPiece("WhiteFree-King!", "White Free-King!");
+    view.defPiece("BlackFree-King!", "Black Free-King!");
  
     view.defPosition("12a", 20, 20, 40, 40);
     view.defPosition("11a", 60, 20, 40, 40);
@@ -929,4 +943,8 @@ Dagaz.View.configure = function(view) {
     view.defPosition("3l", 380, 460, 40, 40);
     view.defPosition("2l", 420, 460, 40, 40);
     view.defPosition("1l", 460, 460, 40, 40);
+
+    view.defPopup("Promote", 208, 100);
+    view.defPopupPosition("T1", 12, 15, 39, 39);
+    view.defPopupPosition("T2", 52, 15, 39, 39);
 }

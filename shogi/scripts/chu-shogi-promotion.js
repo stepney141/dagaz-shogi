@@ -22,11 +22,29 @@ Dagaz.Model.checkVersion = function(design, name, value) {
       promote[36] = 26; // Silver General -> Vertical mover!
       promote[34] =  5; // Gold General -> Rook!
       promote[32] = 30; // Drunk Elephant -> Crowned prince
-      promote[20] = 15; // Kirin -> Lion
-      promote[21] =  6; // Phoenix -> Free king
+      promote[20] = 15; // Kirin -> Lion!
+      promote[21] = 38; // Phoenix -> Free king!
   } else {
       checkVersion(design, name, value);
   }
+}
+
+Dagaz.Model.moveToString = function(move) {
+  var r = "";
+  _.each(move.actions, function(a) {
+      if (r != "") {
+          r = r + " ";
+      }
+      if (a[0] != null) {
+          r = r + Dagaz.Model.posToString(a[0][0]) + '-' + Dagaz.Model.posToString(a[1][0]);
+      } else {
+          r = r + Dagaz.Model.posToString(a[1][0]);
+      }
+      if (a[2] !== null) {
+          r = r + " " + a[2][0].toString();
+      }
+  });
+  return r;
 }
 
 var CheckInvariants = Dagaz.Model.CheckInvariants;
