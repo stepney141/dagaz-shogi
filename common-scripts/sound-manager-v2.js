@@ -95,7 +95,7 @@ Dagaz.Controller.checkSound = function() {
 
 })();
 
-Dagaz.Controller.checkSound();
+if (!Dagaz.Model.NO_SOUND) Dagaz.Controller.checkSound();
 
 Dagaz.Controller.addSound(Dagaz.Sounds.move, "../sounds/clack.wav", true);
 Dagaz.Controller.addSound(Dagaz.Sounds.drop, "../sounds/on.wav", true);

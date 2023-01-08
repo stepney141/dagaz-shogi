@@ -2,11 +2,15 @@
 
 Dagaz.View.SHIFT_X      = 0;
 Dagaz.View.SHIFT_Y      = 0;
+Dagaz.View.LX           = 0;
+Dagaz.View.LY           = 0;
 
 Dagaz.View.STRIKE_ALPHA = 0.5;
 Dagaz.View.DROPS_ALPHA  = 0.5;
 
 Dagaz.View.HINT_STEPS   = 1;
+
+Dagaz.View.TARGET_COLOR = "#00AA00";
 
 Dagaz.View.markType = {
    TARGET:    0,
@@ -49,6 +53,8 @@ function View2D() {
   this.current = [];
   this.drops   = [];
   this.ko      = [];
+  this.labels  = [];
+  this.marks   = [];
 }
 
 Dagaz.View.getView = function() {
@@ -126,7 +132,8 @@ View2D.prototype.clearDrops = function() {
   this.drops = [];
 }
 
-View2D.prototype.defPosition = function(name, x, y, dx, dy) {
+View2D.prototype.defPosition = function(name, x, y, dx, dy, selector) {
+  if (!_.isUndefined(selector) && (selector != Dagaz.Model.getResourceSelector())) return;
   this.pos.push({
       name: name,
       x:    x,
@@ -144,6 +151,10 @@ View2D.prototype.defBoard = function(img, x, y, selector, turns) {
      x: x ? x : 0,
      y: y ? y : 0
   };
+  if (Dagaz.View.CHECK_CANVAS) {
+      Canvas.width = board.h.width;
+      Canvas.height = board.h.height;
+  }
   this.res.push(board);
   this.back.push(board);
 }
@@ -189,22 +200,27 @@ View2D.prototype.addPiece = function(piece, pos, model) {
   });
 }
 
+View2D.prototype.defMark = function(type, res) {
+  this.marks[type] = res;
+}
+
 View2D.prototype.markPositions = function(type, positions) {
   if (type == Dagaz.View.markType.TARGET) {
-      this.target  = positions;
+      this.target   = positions;
   } 
   if (type == Dagaz.View.markType.ATTACKING) {
-      this.strike  = positions;
+      this.strike   = positions;
   }
   if (type == Dagaz.View.markType.GOAL) {
-      this.goal    = positions;
+      this.goal     = positions;
   }
   if (type == Dagaz.View.markType.CURRENT) {
-      this.current = positions;
+      this.current  = positions;
   }
   if (type == Dagaz.View.markType.KO) {
-      this.ko      = positions;
+      this.ko       = positions;
   }
+  this.labels[type] = positions;
   this.invalidate();
 }
 
@@ -381,6 +397,19 @@ var drawMarks = function(ctx, view, list, color) {
    }, view);
 }
 
+var drawLabels = function(ctx, view) {
+   for (var i = Dagaz.View.markType.KO + 1; i < view.marks.length; i++) {
+        var piece = view.piece[view.marks[i]];
+        _.each(view.labels[i], function(pos) {
+              var p = view.pos[pos];
+              if (_.isUndefined(p)) return;
+              var x = ( p.x + (p.dx - piece.dx) / 2) | 0;
+              var y = ( p.y + (p.dy - piece.dy) / 2) | 0;
+              ctx.drawImage(piece.h, x + Dagaz.View.LX, y + Dagaz.View.LY, piece.dx, piece.dy);
+        });
+   }
+}
+
 View2D.prototype.drawKo = function(ctx) {
    if (!_.isUndefined(this.piece["Ko"]) && (this.ko.length > 0)) {
        var piece = this.piece["Ko"];
@@ -554,7 +583,7 @@ View2D.prototype.animate = function() {
 }
 
 Dagaz.View.showMarks = function(view, ctx) {
-  drawMarks(ctx, view, view.target, "#00AA00");
+  drawMarks(ctx, view, view.target, Dagaz.View.TARGET_COLOR);
   drawMarks(ctx, view, view.goal,   "#FFFF00");
 }
 
@@ -619,6 +648,11 @@ View2D.prototype.draw = function(canvas) {
            }
            ctx.drawImage(b.h, b.x, b.y);
       });
+      if (!_.isUndefined(Dagaz.View.showBoard)) {
+           var board = this.controller.getBoard();
+           Dagaz.View.showBoard(board, ctx);
+      }
+      drawLabels(ctx, this);
       _.chain(_.range(this.setup.length))
        .sortBy(function(ix) {
            var piece = this.setup[ix];
@@ -648,11 +682,10 @@ View2D.prototype.draw = function(canvas) {
       this.drawKo(ctx);
       Dagaz.View.showMarks(this, ctx);
       this.showDrops(ctx);
-      this.animate();
-      if (!_.isUndefined(Dagaz.View.showBoard)) {
-           var board = this.controller.getBoard();
-           Dagaz.View.showBoard(board, ctx);
+      if (Dagaz.View.showPieceHint && (hintedPiece !== null)) {
+          Dagaz.View.showPieceHint(this, ctx, hintedPiece);
       }
+      this.animate();
   }
 }
 
@@ -662,34 +695,38 @@ View2D.prototype.debug = function(text) {
 }
 
 Dagaz.View.showHint = function(view) {
-  if (Dagaz.Model.showHints) {
-      var positions = view.pointToPositions(mouseX, mouseY);
-      if (!_.isUndefined(positions) && (positions.length > 0)) {
-          var ix  = posToIx(view, positions[0]);
-          if (ix !== null) {
-              var piece = view.piece[view.setup[ix].name];
-              if (hintedPiece !== piece) {
-                  var text = piece.name;
-                  if (piece.help) {
-                      text = piece.help;
-                  }
+  var positions = view.pointToPositions(mouseX, mouseY);
+  if (!_.isUndefined(positions) && (positions.length > 0)) {
+      var ix  = posToIx(view, positions[0]);
+      if (ix !== null) {
+          var piece = view.piece[view.setup[ix].name];
+          if (hintedPiece !== piece) {
+              var text = piece.name;
+              if (piece.help) {
+                  text = piece.help;
+              }
+              if (Dagaz.Model.showHints) {
                   PieceInfoImage.src = piece.h.src;
                   PieceInfoText.innerHTML = text;
                   PieceInfo.style.display = "inline";
-                  hintedPiece = piece;
               }
+              hintedPiece = piece;
+              view.invalidate();
           }
-      } else {
-          PieceInfo.style.display = "none";
-          hintedPiece = null;
       }
+  } else {
+      if (Dagaz.Model.showHints) {
+          PieceInfo.style.display = "none";
+      }
+      hintedPiece = null;
+      view.invalidate();
   }
 }
 
 var mouseUpdate = function(event) {
   var canvasRect = Canvas.getBoundingClientRect();
-  mouseX = event.clientX - canvasRect.left;
-  mouseY = event.clientY - canvasRect.top;
+  mouseX = (event.clientX - canvasRect.left) / (canvasRect.width / Canvas.width);
+  mouseY = (event.clientY - canvasRect.top) / (canvasRect.height / Canvas.height);
 }
 
 var mouseMove = function(event) {

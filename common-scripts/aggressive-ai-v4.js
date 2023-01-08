@@ -58,7 +58,7 @@ function AggressiveAi(params, parent) {
 var findBot = Dagaz.AI.findBot;
 
 Dagaz.AI.findBot = function(type, params, parent) {
-  if ((type == "aggressive") || (type == "common")) {
+  if ((type == "aggressive") || (type == "common") || (type == "1") || (type == "2")) {
       return new AggressiveAi(params, parent);
   } else {
       return findBot(type, params, parent);

@@ -156,6 +156,10 @@ View2D.prototype.defBoard = function(img, x, y, selector, turns) {
      x: x ? x : 0,
      y: y ? y : 0
   };
+  if (Dagaz.View.CHECK_CANVAS) {
+      Canvas.width = board.h.width;
+      Canvas.height = board.h.height;
+  }
   this.res.push(board);
   this.board.push(board);
 }
@@ -795,8 +799,8 @@ Dagaz.View.showHint = function(view) {
 
 var mouseUpdate = function(event) {
   var canvasRect = Canvas.getBoundingClientRect();
-  mouseX = event.clientX - canvasRect.left;
-  mouseY = event.clientY - canvasRect.top;
+  mouseX = (event.clientX - canvasRect.left) / (canvasRect.width / Canvas.width);
+  mouseY = (event.clientY - canvasRect.top) / (canvasRect.height / Canvas.height);
 }
 
 var mouseMove = function(event) {

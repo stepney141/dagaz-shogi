@@ -751,7 +751,7 @@ ZrfDesign.prototype.reserve = function(player, piece, cnt, selector) {
   }
 }
 
-ZrfDesign.prototype.setup = function(player, piece, pos, selector) {
+ZrfDesign.prototype.setup = function(player, piece, pos, selector, attrs) {
   if (!_.isUndefined(selector) && (selector != Dagaz.Model.getSetupSelector())) {
       return;
   }
@@ -767,7 +767,14 @@ ZrfDesign.prototype.setup = function(player, piece, pos, selector) {
       this.failed = true;
   } else {
       var board = Dagaz.Model.getInitBoard();
-      board.setPiece(pos, Dagaz.Model.createPiece(t, o));
+      var piece = Dagaz.Model.createPiece(t, o);
+      if (!_.isUndefined(attrs)) {
+          if (!_.isArray(attrs)) attrs = [attrs];
+          for (var i = 0; i < attrs.length; i++) {
+               piece = piece.setValue(i, attrs[i]);
+          }
+      }
+      board.setPiece(pos, piece);
   }
 }
 
@@ -944,7 +951,8 @@ ZrfDesign.prototype.addTurn = function(player, modes, selector) {
   });
 }
 
-ZrfDesign.prototype.addRandom = function(player, modes) {
+ZrfDesign.prototype.addRandom = function(player, modes, selector) {
+  if (!_.isUndefined(selector) && (selector != Dagaz.Model.getResourceSelector())) return;
   if (_.isUndefined(this.turns)) {
       this.turns = [];
   }
@@ -1054,7 +1062,10 @@ ZrfGrid.prototype.addDirection = function(name, offsets) {
   }
 }
 
-ZrfDesign.prototype.addPosition = function(name, links) {
+ZrfDesign.prototype.addPosition = function(name, links, selector) {
+  if (!_.isUndefined(selector) && (selector != Dagaz.Model.getSetupSelector())) {
+      return;
+  }
   if (_.isUndefined(links)) {
       links = _.map(_.range(this.dirs.length), function(dir) {
           return 0;
@@ -1068,6 +1079,15 @@ ZrfDesign.prototype.addPosition = function(name, links) {
   }
   this.positionNames.push(name);
   this.positions.push(Dagaz.int32Array(links));
+}
+
+ZrfDesign.prototype.isKilledPos = function(pos) {
+  if (pos >= this.positions.length) return true;
+  var links = this.positions[pos];
+  for (var i = 0; i < links.length; i++) {
+      if (links[i] != 0) return false;
+  }
+  return true;
 }
 
 ZrfDesign.prototype.linkPosition = function(dir, from, to) {
@@ -2478,6 +2498,16 @@ ZrfMove.prototype.getTarget = function() {
   return null;
 }
 
+ZrfMove.prototype.setLast = function(lastf, lastt, part) {
+  if (!part) part = 1;
+  this.actions.push([ null, null, [{
+      exec: function(obj) {
+          obj.lastf = lastf;
+          obj.lastt = lastt;
+      }
+  }], part]);
+}
+
 ZrfMove.prototype.setReserve = function(type, player, value, part) {
   if (!part) part = 1;
   this.actions.push([ null, null, [{
@@ -2578,6 +2608,15 @@ ZrfMove.prototype.isDropMove = function() {
   for (var i = 0; i < this.actions.length; i++) {
        if (this.actions[i][0] !== null) return false;
        if (this.actions[i][1] !== null) return true;
+  }
+  return r;
+}
+
+ZrfMove.prototype.isCaptureMove = function() {
+  var r = false;
+  for (var i = 0; i < this.actions.length; i++) {
+       if (this.actions[i][1] !== null) return false;
+       if (this.actions[i][0] !== null) return true;
   }
   return r;
 }

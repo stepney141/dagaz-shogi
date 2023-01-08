@@ -20,7 +20,7 @@ var getName = function() {
   var str = window.location.pathname.toString();
   var result = str.match(/\/([^.\/]+)\./);
   if (result) {
-      return result[1].replace("-board", "").replace("-ai", "");
+      return result[1].replace("-board", "").replace("-ai", "").replace("-kanji", "");
   } else {
       return str;
   }
@@ -208,6 +208,10 @@ var noMoves = function(board) {
 SessionManager.prototype.redo = function(board) {
   if (_.isUndefined(this.current) || _.isUndefined(this.current.current)) return null;
   this.current = this.current.current;
+  delete Dagaz.AI.advisorTime;
+  if (!_.isUndefined(Dagaz.AI.clearAdvisor)) {
+      Dagaz.AI.clearAdvisor();
+  }
   console.log("redo");
   return this.current.board;
 }
@@ -249,6 +253,10 @@ Dagaz.Controller.redo = function() {
 SessionManager.prototype.undo = function() {
   if (_.isUndefined(this.current) || _.isUndefined(this.current.parent)) return null;
   this.current = this.current.parent;
+  delete Dagaz.AI.advisorTime;
+  if (!_.isUndefined(Dagaz.AI.clearAdvisor)) {
+      Dagaz.AI.clearAdvisor();
+  }
   console.log("undo");
   return this.current.board;
 }
